@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <style>
+        form {
+            border: 3px solid #f1f1f1;
+
+        }
+        input[type=text], input[type=email], input[type=password] {
+            width: 30%;
+            padding: 12px 20px;
+            margin: 8px 0;
+            text-align : center;
+            display: inline-block;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+
+        input[type=submit] {
+
+            color: gray;
+            padding: 14px 20px;
+            margin: 8px 0;
+            margin-left: 48px;
+            border: none;
+            cursor: pointer;
+            width: 10%;
+        }
+        #error {
+            color: red;
+            text-align: center;
+            margin: 8px 0;
+            margin-left: 48px;
+        }
+    </style>
+    <meta charset="UTF-8">
+    <title>Address Book</title>
+
+</head>
+<body>
+<div id="login-signup">
+    <a href="/Login" >Log In</a>
+    <a href="/Signup">Sign Up</a>
+</div>
+
+{{if .errors}}
+<ul>
+    {{range .errors}}
+    <li>
+        {{.Key}} {{.Message}}
+    </li>
+    {{end}}
+</ul>
+{{end}}
+
+{{if .flash.success}}
+<div class="alert alert-success">
+    {{.flash.success}}
+</div>
+{{end}}
+
+<div id="LogIn" style="text-align: center">
+    <h2>Welcome To Address Book</h2>
+    <form id="login-form" method="post">
+        Name     :<input name="signin.Username" type="text"/></br>
+        Password :<input name="signin.Password" type="password"><br>
+        <input value="LogIn" type="submit" onclick="index()">
+    </form>
+</div>
+
+
+
+
+
+<div id="error">
+    {{.E}}
+</div>
+
+
+</body>
+</html>

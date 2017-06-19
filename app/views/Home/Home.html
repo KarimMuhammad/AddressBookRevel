@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Address Book</title>
+</head>
+<style>
+    ul {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background-color: #333;
+        position:relative;
+    }
+
+    li {
+        float: left;
+        position:relative;
+        left:40%;
+
+    }
+
+    li a {
+        display: block;
+        color: white;
+        text-align: center;
+        padding: 14px 16px;
+        text-decoration: none;
+        position:relative;
+
+    }
+
+    li a:hover {
+        background-color: #111;
+    }
+
+    form  {
+        border: 3px solid #f1f1f1;
+
+    }
+    input[type=text]:not([name=no]) , input[type=email], input[type=password] {
+        width: 30%;
+        padding: 12px 20px;
+        margin: 8px 0;
+        text-align : center;
+        display: inline-block;
+        border: 1px solid #ccc;
+        box-sizing: border-box;
+    }
+
+    input[type=submit]:not([name=add-no])    {
+
+        color: gray;
+        padding: 14px 20px;
+        margin: 8px 0;
+        margin-left: 48px;
+        border: none;
+        cursor: pointer;
+        width: 10%;
+    }
+
+
+</style>
+<body>
+
+<ul>
+    <li><a class="active" href="#" onclick="showhome()">Home</a></li>
+    <li><a href="#" onclick="showcontact()">Add Contacts</a></li>
+    <li><a href="#" onclick="showabout()">About</a></li>
+    <li><a href="/Login"  >Log Out</a></li>
+</ul>
+
+<div id="home" >
+        <table width="100%">
+            <thead>
+            <tr style="text-align: left;">
+                <th width="10%" >First Name</th>
+                <th width="10%" >Last Name</th>
+                <th width="15%" >Job Title</th>
+                <th width="15%" >Company Name</th>
+                <th width="15%" >Email</th>
+                <th width="25%" >Phone Numbers</th>
+                <th width="10%" >Delete</th>
+            </tr>
+            </thead>
+
+            <tbody id="view-results">
+            {{range .h}}
+            <tr id="contact-row-{{.Contact_ID}}">
+                <td>{{.First_Name}}</td>
+                <td>{{.Last_Name}}</td>
+                <td>{{.Job_Title}}</td>
+                <td>{{.Company}}</td>
+                <td>{{.Email}}</td>
+                <td>
+                    <select id="select-{{.Contact_ID}}" >
+                    {{range .Phones}}
+                    <option id="num-{{.No_ID}}" >{{.Phone_Number}}</option>
+                    {{end}}
+                    </select>
+                    <form id="Add-numbers-{{.Contact_ID}}"  style="border: none">
+                        <input id="no-{{.Contact_ID}}" name="PhoneNo.Phone_Number" type="text"/>
+                        <input name="add-no" value="Add no" type="button" onclick="addnumber({{.Contact_ID}})">
+                    </form>
+                </td>
+                <td>
+                    <button onclick="deletecontact({{.Contact_ID}})">Delete</button>
+                </td>
+            </tr>
+            {{end}}
+            </tbody>
+        </table>
+</div>
+
+
+
+<div id="Contact" style="display: none;text-align: center">
+    <form id="Add-contacts-form" onsubmit="return false">
+
+        First Name :<input name="Contactinfo.First_Name" type="text"/></br>
+        Last  Name :<input name="Contactinfo.Last_Name" type="text"/></br>
+        Job Title :<input name="Contactinfo.Job_Title" type="text"/></br>
+        Company Name :<input name="Contactinfo.Company" type="text"/></br>
+        Email    :<input name="Contactinfo.Email" type="email"/></br>
+
+        <input value="Add Contact" type="submit" onclick="addcontact()" >
+
+    </form>
+</div>
+
+<div id="About" style="display: none">
+    <p>this is About </p>
+
+</div>
+{{if .errors}}
+<ul>
+    {{range .errors}}
+    <li>
+        {{.Key}} {{.Message}}
+    </li>
+    {{end}}
+</ul>
+{{end}}
+
+<script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<script type="text/javascript">
+
+    function showhome() {
+        $("#home").show();
+        $("#Contact").hide();
+        $("#About").hide();
+    }
+    function showcontact() {
+        $("#home").hide();
+        $("#Contact").show();
+        $("#About").hide();
+    }
+    function showabout() {
+        $("#home").hide();
+        $("#Contact").hide();
+        $("#About").show();
+    }
+
+
+    function addcontact() {
+        console.log("add contact ")
+        $.ajax ({
+            url:"/contact/add",
+            method:"POST",
+            data:$("#Add-contacts-form").serialize(),
+            success: function (data) {
+                var contact = data;
+                console.log(contact)
+                if (!contact) return;
+                $("#view-results").append("<tr id='contact-row-" + contact.Contact_ID + "'><td>" + contact.First_Name + "</td><td>" + contact.Last_Name + "</td><td>" + contact.Job_Title + "</td><td>" + contact.Company + "</td><td>" + contact.Email + "</td><td><select><option></option></select> <form style='border: none'> <input id='num' name='no' type='text'/> <input name='add-no' value='Add no' type='submit' onclick='addnumber(+ contact.Contact_ID +)'> </form></td><td><button class='delete-btn' onclick='deletecontact(" + contact.Contact_ID + ")'>Delete</button></td></tr>");
+                location.reload();
+            }
+
+        });
+    }
+
+    function addnumber(Contact_ID) {
+        console.log("add number")
+        $.ajax ({
+            url:"/contact/addno?Contact_ID=" + Contact_ID,
+            method:"POST",
+            data:$("#Add-numbers-"+ Contact_ID).serialize(),
+            success: function (number) {
+                var num = number;
+                if (!number) return;
+                $("#select-"+ Contact_ID).append("<option id='num-" + num.No_ID + "'>" + num.Phone_Number + "</option>");
+                $("#Add-numbers-"+ Contact_ID)[0].reset();
+
+            }
+        });
+
+    }
+    function deletecontact(Contact_ID) {
+        $.ajax ({
+            url:"/contact/delete?Contact_ID=" + Contact_ID,
+            method:"GET",
+            success: function () {
+                $("#contact-row-" + Contact_ID).remove();
+            }
+
+        });
+
+    }
+
+</script>
+
+</body>
+</html>
