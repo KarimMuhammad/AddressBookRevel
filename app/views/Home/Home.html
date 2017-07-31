@@ -87,25 +87,25 @@
 
             <tbody id="view-results">
             {{range .h}}
-            <tr id="contact-row-{{.Contact_ID}}">
-                <td>{{.First_Name}}</td>
-                <td>{{.Last_Name}}</td>
-                <td>{{.Job_Title}}</td>
+            <tr id="contact-row-{{.Id}}">
+                <td>{{.FirstName}}</td>
+                <td>{{.LastName}}</td>
+                <td>{{.JobTitle}}</td>
                 <td>{{.Company}}</td>
                 <td>{{.Email}}</td>
                 <td>
-                    <select id="select-{{.Contact_ID}}" >
+                    <select id="select-{{.Id}}" >
                     {{range .Phones}}
-                    <option id="num-{{.No_ID}}" >{{.Phone_Number}}</option>
+                    <option id="num-{{.Id}}" >{{.PhoneNumber}}</option>
                     {{end}}
                     </select>
-                    <form id="Add-numbers-{{.Contact_ID}}"  style="border: none">
-                        <input id="no-{{.Contact_ID}}" name="PhoneNo.Phone_Number" type="text"/>
-                        <input name="add-no" value="Add no" type="button" onclick="addnumber({{.Contact_ID}})">
+                    <form id="Add-numbers-{{.Id}}"  style="border: none">
+                        <input id="no-{{.Id}}" name="Phone.PhoneNumber" type="text"/>
+                        <input name="add-no" value="Add no" type="button" onclick="addnumber({{.Id}})">
                     </form>
                 </td>
                 <td>
-                    <button onclick="deletecontact({{.Contact_ID}})">Delete</button>
+                    <button onclick="deletecontact({{.Id}})">Delete</button>
                 </td>
             </tr>
             {{end}}
@@ -118,12 +118,12 @@
 <div id="Contact" style="display: none;text-align: center">
     <form id="Add-contacts-form" onsubmit="return false">
 
-        First Name :<input name="Contactinfo.First_Name" type="text"/></br>
-        Last  Name :<input name="Contactinfo.Last_Name" type="text"/></br>
-        Job Title :<input name="Contactinfo.Job_Title" type="text"/></br>
-        Company Name :<input name="Contactinfo.Company" type="text"/></br>
-        Email    :<input name="Contactinfo.Email" type="email"/></br>
-
+        First Name :<input name="ContactInfo.FirstName" type="text"/></br>
+        Last  Name :<input name="ContactInfo.LastName" type="text"/></br>
+        Job Title :<input name="ContactInfo.JobTitle" type="text"/></br>
+        Company Name :<input name="ContactInfo.Company" type="text"/></br>
+        Email    :<input name="ContactInfo.Email" type="email"/></br>
+        phone    :<input name="phone" type="text"/></br>
         <input value="Add Contact" type="submit" onclick="addcontact()" >
 
     </form>
@@ -173,7 +173,7 @@
                 var contact = data;
                 console.log(contact)
                 if (!contact) return;
-                $("#view-results").append("<tr id='contact-row-" + contact.Contact_ID + "'><td>" + contact.First_Name + "</td><td>" + contact.Last_Name + "</td><td>" + contact.Job_Title + "</td><td>" + contact.Company + "</td><td>" + contact.Email + "</td><td><select><option></option></select> <form style='border: none'> <input id='num' name='no' type='text'/> <input name='add-no' value='Add no' type='submit' onclick='addnumber(+ contact.Contact_ID +)'> </form></td><td><button class='delete-btn' onclick='deletecontact(" + contact.Contact_ID + ")'>Delete</button></td></tr>");
+                $("#view-results").append("<tr id='contact-row-" + contact.Id + "'><td>" + contact.FirstName + "</td><td>" + contact.LastName + "</td><td>" + contact.JobTitle + "</td><td>" + contact.Company + "</td><td>" + contact.Email + "</td><td><select><option></option></select> <form style='border: none'> <input id='num' name='no' type='text'/> <input name='add-no' value='Add no' type='submit' onclick='addnumber(+ contact.Id +)'> </form></td><td><button class='delete-btn' onclick='deletecontact(" + contact.Id + ")'>Delete</button></td></tr>");
                 location.reload();
             }
 
@@ -189,7 +189,7 @@
             success: function (number) {
                 var num = number;
                 if (!number) return;
-                $("#select-"+ Contact_ID).append("<option id='num-" + num.No_ID + "'>" + num.Phone_Number + "</option>");
+                $("#select-"+ Contact_ID).append("<option id='num-" + num.Id + "'>" + num.PhoneNumber + "</option>");
                 $("#Add-numbers-"+ Contact_ID)[0].reset();
 
             }

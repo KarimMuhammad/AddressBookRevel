@@ -2,20 +2,13 @@ package controllers
 
 import (
 	"github.com/revel/revel"
+	"strconv"
 	"github.com/AddressBookRevel/app/model"
-	"fmt"
-	"golang.org/x/crypto/bcrypt"
-
 	"github.com/AddressBookRevel/app"
 
-	"strconv"
+	"fmt"
 )
 //in this controller file it will search for Sign folder in views folder
-
-
-
-
-
 
 type Sign struct {
 	*revel.Controller
@@ -32,57 +25,61 @@ func (c Sign) Signup() revel.Result {
 
 func (c Sign) Signin() revel.Result {
 
-	var login model.Signin
-	var user_id int
-	c.Params.Bind(&login, "signin")
+	var login model.User
+	c.Params.Bind(&login, "user")
 
 	c.Validation.Required(login.Username)
 	c.Validation.Required(login.Password)
 
-	if c.Validation.HasErrors() {
+	if c.Validation.HasErrors() && ! login.LoginDB() {
+		c.Flash.Error("unsuccessful login")
 		c.Validation.Keep()
 		c.FlashParams()
+		return c.RenderTemplate("Sign/Login.html")
+
 	} else {
-		rows, _ := app.DB.Query("SELECT User_ID, User_Name, User_Pass FROM Users WHERE User_Name=? ", login.Username)
-		for rows.Next() {
-			var user model.Signin
-			rows.Scan(&user_id, &user.Username, &user.Password)
-			err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(login.Password))
-			if err != nil {
-				c.Flash.Data["log"] = "Wrong Password"
-			} else {
-
-				c.Session["user_name"] = user.Username
-				c.Session["user_id"] = strconv.Itoa(user_id)
-				return c.Redirect("/home")
-				//return c.Redirect("/home/%d", user_id)
-
-			}
-		}
+		c.Session["user_name"] = login.Username
+		c.Session["user_id"] = strconv.Itoa(FindUserID(login.Username))
+		fmt.Println(c.Session["user_id"])
+		return c.Redirect("/home")
 	}
-	return c.RenderTemplate("Sign/Login.html")
 }
+
+
 func (c Sign) Register() revel.Result {
 
-	var signup model.Signup
-	c.Params.Bind(&signup,"signup")
+	var signup model.User
+	c.Params.Bind(&signup,"user")
 
 	c.Validation.Required(signup.Username)
 	c.Validation.Required(signup.Email)
 	c.Validation.Required(signup.Password)
-	fmt.Println(signup)
 
 	if c.Validation.HasErrors(){
 
 		c.Validation.Keep()
 		c.FlashParams()
 
+	}else if(signup.Exists())  {
+
+		c.Flash.Error("user name already exist")
+		c.Validation.Keep()
+		c.FlashParams()
+
 	}else {
-		Upassword ,_ := bcrypt.GenerateFromPassword([]byte(signup.Password),bcrypt.DefaultCost)
-		data,err :=app.DB.Prepare("INSERT INTO Users(User_ID,User_Name,User_Email,User_Pass) VALUES (?, ?, ?, ?)")
-		res,err := data.Exec(nil, signup.Username, signup.Email,Upassword)
-		fmt.Println(err,res)
+		signup.SignupDB()
 		c.Flash.Success("Successful Sign up")
 	}
 	return c.RenderTemplate("Sign/Signup.html")
+}
+
+func FindUserID(name string) int{
+
+	rows, _:= app.DB.Query("SELECT User_ID FROM Users WHERE User_Name=? " ,name)
+	defer rows.Close()
+	var id int
+	if rows.Next() {
+		rows.Scan(&id)
+	}
+	return id
 }

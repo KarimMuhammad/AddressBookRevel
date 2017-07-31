@@ -8,9 +8,9 @@ import (
 	_ "github.com/AddressBookRevel/app"
 	controllers "github.com/AddressBookRevel/app/controllers"
 	tests "github.com/AddressBookRevel/tests"
-	controllers1 "github.com/revel/modules/static/app/controllers"
+	controllers0 "github.com/revel/modules/static/app/controllers"
 	_ "github.com/revel/modules/testrunner/app"
-	controllers0 "github.com/revel/modules/testrunner/app/controllers"
+	controllers1 "github.com/revel/modules/testrunner/app/controllers"
 	"github.com/revel/revel/testing"
 )
 
@@ -29,6 +29,43 @@ func main() {
 	revel.Init(*runMode, *importPath, *srcPath)
 	revel.INFO.Println("Running revel server")
 	
+	revel.RegisterController((*controllers.Sign)(nil),
+		[]*revel.MethodType{
+			&revel.MethodType{
+				Name: "Login",
+				Args: []*revel.MethodArg{ 
+				},
+				RenderArgNames: map[int][]string{ 
+					19: []string{ 
+					},
+				},
+			},
+			&revel.MethodType{
+				Name: "Signup",
+				Args: []*revel.MethodArg{ 
+				},
+				RenderArgNames: map[int][]string{ 
+					23: []string{ 
+					},
+				},
+			},
+			&revel.MethodType{
+				Name: "Signin",
+				Args: []*revel.MethodArg{ 
+				},
+				RenderArgNames: map[int][]string{ 
+				},
+			},
+			&revel.MethodType{
+				Name: "Register",
+				Args: []*revel.MethodArg{ 
+				},
+				RenderArgNames: map[int][]string{ 
+				},
+			},
+			
+		})
+	
 	revel.RegisterController((*controllers.Home)(nil),
 		[]*revel.MethodType{
 			&revel.MethodType{
@@ -36,7 +73,7 @@ func main() {
 				Args: []*revel.MethodArg{ 
 				},
 				RenderArgNames: map[int][]string{ 
-					36: []string{ 
+					21: []string{ 
 						"h",
 					},
 				},
@@ -65,36 +102,23 @@ func main() {
 			
 		})
 	
-	revel.RegisterController((*controllers.Sign)(nil),
+	revel.RegisterController((*controllers0.Static)(nil),
 		[]*revel.MethodType{
 			&revel.MethodType{
-				Name: "Login",
+				Name: "Serve",
 				Args: []*revel.MethodArg{ 
-				},
-				RenderArgNames: map[int][]string{ 
-					26: []string{ 
-					},
-				},
-			},
-			&revel.MethodType{
-				Name: "Signup",
-				Args: []*revel.MethodArg{ 
-				},
-				RenderArgNames: map[int][]string{ 
-					30: []string{ 
-					},
-				},
-			},
-			&revel.MethodType{
-				Name: "Signin",
-				Args: []*revel.MethodArg{ 
+					&revel.MethodArg{Name: "prefix", Type: reflect.TypeOf((*string)(nil)) },
+					&revel.MethodArg{Name: "filepath", Type: reflect.TypeOf((*string)(nil)) },
 				},
 				RenderArgNames: map[int][]string{ 
 				},
 			},
 			&revel.MethodType{
-				Name: "Register",
+				Name: "ServeModule",
 				Args: []*revel.MethodArg{ 
+					&revel.MethodArg{Name: "moduleName", Type: reflect.TypeOf((*string)(nil)) },
+					&revel.MethodArg{Name: "prefix", Type: reflect.TypeOf((*string)(nil)) },
+					&revel.MethodArg{Name: "filepath", Type: reflect.TypeOf((*string)(nil)) },
 				},
 				RenderArgNames: map[int][]string{ 
 				},
@@ -102,7 +126,7 @@ func main() {
 			
 		})
 	
-	revel.RegisterController((*controllers0.TestRunner)(nil),
+	revel.RegisterController((*controllers1.TestRunner)(nil),
 		[]*revel.MethodType{
 			&revel.MethodType{
 				Name: "Index",
@@ -143,46 +167,25 @@ func main() {
 			
 		})
 	
-	revel.RegisterController((*controllers1.Static)(nil),
-		[]*revel.MethodType{
-			&revel.MethodType{
-				Name: "Serve",
-				Args: []*revel.MethodArg{ 
-					&revel.MethodArg{Name: "prefix", Type: reflect.TypeOf((*string)(nil)) },
-					&revel.MethodArg{Name: "filepath", Type: reflect.TypeOf((*string)(nil)) },
-				},
-				RenderArgNames: map[int][]string{ 
-				},
-			},
-			&revel.MethodType{
-				Name: "ServeModule",
-				Args: []*revel.MethodArg{ 
-					&revel.MethodArg{Name: "moduleName", Type: reflect.TypeOf((*string)(nil)) },
-					&revel.MethodArg{Name: "prefix", Type: reflect.TypeOf((*string)(nil)) },
-					&revel.MethodArg{Name: "filepath", Type: reflect.TypeOf((*string)(nil)) },
-				},
-				RenderArgNames: map[int][]string{ 
-				},
-			},
-			
-		})
-	
 	revel.DefaultValidationKeys = map[string]map[int]string{ 
 		"github.com/AddressBookRevel/app/controllers.Home.AddContact": { 
-			44: "Contactinfo.First_Name",
-			45: "Contactinfo.Last_Name",
-			46: "Contactinfo.Email",
-			47: "Contactinfo.Company",
-			48: "Contactinfo.Job_Title",
+			31: "Contactinfo.FirstName",
+			32: "Contactinfo.LastName",
+			33: "Contactinfo.Email",
+			34: "Contactinfo.Company",
+			35: "Contactinfo.JobTitle",
+		},
+		"github.com/AddressBookRevel/app/controllers.Home.AddNumber": { 
+			80: "phone.PhoneNumber",
 		},
 		"github.com/AddressBookRevel/app/controllers.Sign.Register": { 
-			70: "signup.Username",
-			71: "signup.Email",
-			72: "signup.Password",
+			54: "signup.Username",
+			55: "signup.Email",
+			56: "signup.Password",
 		},
 		"github.com/AddressBookRevel/app/controllers.Sign.Signin": { 
-			39: "login.Username",
-			40: "login.Password",
+			31: "login.Username",
+			32: "login.Password",
 		},
 	}
 	testing.TestSuites = []interface{}{ 

@@ -17,7 +17,7 @@ var (
 var DB *sql.DB
 
 func InitDB(){
-	DB,_ =sql.Open("mysql","root:root@/Address_book")
+	DB,_ =sql.Open("mysql","root:12345678@/Address_book")
 }
 
 func init() {
