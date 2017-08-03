@@ -36,7 +36,7 @@ func main() {
 				Args: []*revel.MethodArg{ 
 				},
 				RenderArgNames: map[int][]string{ 
-					27: []string{ 
+					26: []string{ 
 						"h",
 					},
 				},
@@ -50,6 +50,13 @@ func main() {
 			},
 			&revel.MethodType{
 				Name: "DeleteContact",
+				Args: []*revel.MethodArg{ 
+				},
+				RenderArgNames: map[int][]string{ 
+				},
+			},
+			&revel.MethodType{
+				Name: "DeleteNumber",
 				Args: []*revel.MethodArg{ 
 				},
 				RenderArgNames: map[int][]string{ 
@@ -176,7 +183,7 @@ func main() {
 			41: "Contactinfo.JobTitle",
 		},
 		"github.com/AddressBookRevelWithCassandra/app/controllers.Home.AddNumber": { 
-			98: "phone.PhoneNumber",
+			114: "phone.PhoneNumber",
 		},
 		"github.com/AddressBookRevelWithCassandra/app/controllers.Sign.Register": { 
 			50: "signup.Username",

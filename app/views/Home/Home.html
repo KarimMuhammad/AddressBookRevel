@@ -86,26 +86,23 @@
             </thead>
 
             <tbody id="view-results">
-            {{range .h}}
-            <tr id="contact-row-{{.Id}}">
-                <td>{{.FirstName}}</td>
-                <td>{{.LastName}}</td>
-                <td>{{.JobTitle}}</td>
-                <td>{{.Company}}</td>
-                <td>{{.Email}}</td>
-                <td>
-                    <select id="select-{{.Id}}" >
-                    {{range .Phones}}
-                    <option id="num-{{.Id}}" >{{.PhoneNumber}}</option>
-                    {{end}}
-                    </select>
-                    <form id="Add-numbers-{{.Id}}"  style="border: none">
-                        <input id="no-{{.Id}}" name="Phone.PhoneNumber" type="text"/>
-                        <input name="add-no" value="Add no" type="button" onclick="addnumber({{.Id}})">
+            {{ $contacts := .h }}
+            {{range $contact := $contacts }}
+            <tr id="contact-row-{{$contact.Id}}">
+                <td>{{$contact.FirstName}}</td>
+                <td>{{$contact.LastName}}</td>
+                <td>{{$contact.JobTitle}}</td>
+                <td>{{$contact.Company}}</td>
+                <td>{{$contact.Email}}</td>
+                <td>{{range $contact.Phones}} <object id="num-{{.NoId}}"> {{.PhoneNumber}} <button  class="delete-btn" onclick="DeleteNum({{.NoId}} , {{$contact.Id}})" >Delete</button> </object>
+                   <br>{{end}}
+                    <form id="Add-numbers-{{$contact.Id}}"  style="border: none">
+                        <input id="no-{{$contact.Id}}" name="Phone.PhoneNumber" type="text"/>
+                        <input name="add-no" value="Add no" type="button" onclick="addnumber({{$contact.Id}})">
                     </form>
                 </td>
                 <td>
-                    <button onclick="deletecontact({{.Id}})">Delete</button>
+                    <button onclick="deletecontact({{$contact.Id}})">Delete</button>
                 </td>
             </tr>
             {{end}}
@@ -196,6 +193,20 @@
         });
 
     }
+
+
+    function DeleteNum(num_ID , Contact_ID) {
+        $.ajax ({
+            url:'/phone/delete?Contact_ID=' + Contact_ID +'&Num_ID=' + num_ID,
+            method:"GET",
+            success: function () {
+                $("#num-" + num_ID).remove();
+            }
+
+        });
+
+    }
+
     function deletecontact(Contact_ID) {
         $.ajax ({
             url:"/contact/delete?Contact_ID=" + Contact_ID,

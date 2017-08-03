@@ -48,3 +48,10 @@ func (signinfo User) SignupDB()error{
 	return err
 }
 
+func FindUserID(name string) (gocql.UUID,error){
+
+	var id gocql.UUID
+	err := app.CassandraSession.Query("SELECT user_id FROM user_by_name WHERE user_name=? " ,name).Scan(&id)
+	return id,err
+}
+

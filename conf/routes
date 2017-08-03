@@ -15,6 +15,7 @@ GET     /home                                   Home.Home
 POST    /contact/add                            Home.AddContact
 GET     /contact/delete                         Home.DeleteContact
 POST    /contact/addno                          Home.AddNumber
+GET     /phone/delete                           Home.DeleteNumber
 
 
 # Ignore favicon requests

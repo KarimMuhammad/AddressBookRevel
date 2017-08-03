@@ -29,6 +29,13 @@ func (_ tHome) DeleteContact(
 	return revel.MainRouter.Reverse("Home.DeleteContact", args).URL
 }
 
+func (_ tHome) DeleteNumber(
+		) string {
+	args := make(map[string]string)
+	
+	return revel.MainRouter.Reverse("Home.DeleteNumber", args).URL
+}
+
 func (_ tHome) AddNumber(
 		) string {
 	args := make(map[string]string)

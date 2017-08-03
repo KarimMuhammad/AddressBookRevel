@@ -25,13 +25,6 @@ func (contact ContactInfo) AddContactDB(user_id gocql.UUID) (gocql.UUID, error){
 	return uuid,err
 }
 
-func (contact ContactInfo) AddNumDB(contactid gocql.UUID) error{
-
-	uuid,err := gocql.RandomUUID()
-	err =app.CassandraSession.Query("INSERT INTO phones( number_id,number,contact_id) VALUES (?,?,?)", uuid,contact.Phones[0].PhoneNumber, contactid).Exec()
-	return err
-}
-
 func  (contact ContactInfo) DeleteContactDB (userid gocql.UUID , contactid gocql.UUID) error{
 
 	deleteContactStat := "DELETE FROM phones WHERE contact_id= ?"
@@ -53,7 +46,7 @@ func (contact ContactInfo) GetContacts( user_id gocql.UUID ) ([] ContactInfo){
 
 	for iter.Scan(&contact.Id, &contact.FirstName, &contact.LastName, &contact.JobTitle, &contact.Company,&contact.Email ){
 		iter2:=app.CassandraSession.Query("SELECT Number_id, number FROM phones WHERE contact_id = ? ALLOW FILTERING" , &contact.Id).Iter()
-		for iter2.Scan(&no.Id, &no.PhoneNumber) {
+		for iter2.Scan(&no.NoId, &no.PhoneNumber) {
 			fmt.Println(no)
 			contact.Phones = append(contact.Phones, no)
 		}
