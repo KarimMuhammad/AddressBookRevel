@@ -2,9 +2,10 @@ package controllers
 
 import (
 	"github.com/revel/revel"
-	"github.com/AddressBookRevel/app/model"
+	"github.com/AddressBookRevelWithCassandra/app/model"
+	"github.com/AddressBookRevelWithCassandra/app"
 	"fmt"
-	"strconv"
+	"github.com/gocql/gocql"
 )
 //in this controller file it will search for app folder in views folder
 type Home struct {
@@ -15,8 +16,14 @@ type Home struct {
 func (c Home) Home() revel.Result {
 
 	var contact model.ContactInfo
-	userid,_ := strconv.Atoi(c.Session["user_id"])
-	h := contact.HomeDB(int64(userid))
+	user_name:= c.Session["user_name"]
+	ID, err := FindUserID(user_name)
+	h  := contact.GetContacts(ID)
+	if(err !=nil) {
+		c.Flash.Error(err.Error())
+		c.Validation.Keep()
+		c.FlashParams()
+	}
 	return c.Render(h)
 }
 
@@ -41,14 +48,19 @@ func (c Home) AddContact() revel.Result{
 
 	}else {
 
-        id,_ := strconv.Atoi(c.Session["user_id"])
-		fmt.Println(id,c.Session["user_id"])
+		user_name:= c.Session["user_name"]
+		ID, err := FindUserID(user_name)
 		Contactinfo.Phones = append(Contactinfo.Phones , phones)
-		lastinsertid := Contactinfo.AddContactDB(int64(id))
-		Contactinfo.AddNumDB(lastinsertid)
+		lastinsertid ,err := Contactinfo.AddContactDB(ID)
+		err = Contactinfo.AddNumDB(lastinsertid)
+		if(err !=nil) {
+			c.Flash.Error("DB Error")
+			c.Validation.Keep()
+			c.FlashParams()
+		}
 		contact := model.ContactInfo{
 
-			Id:int(lastinsertid),
+			Id: lastinsertid,
 			FirstName: Contactinfo.FirstName,
 			LastName: Contactinfo.LastName,
 			Email: Contactinfo.Email,
@@ -66,7 +78,15 @@ func(c Home) DeleteContact() revel.Result{
 
 	var contact model.ContactInfo
 	contact_id := c.Params.Get("Contact_ID")
-	contact.DeleteContactDB(contact_id)
+	user_name:= c.Session["user_name"]
+	ID, err := FindUserID(user_name)
+	contactuuid,err := gocql.ParseUUID(contact_id)
+	err = contact.DeleteContactDB(ID , contactuuid)
+	if(err !=nil) {
+		c.Flash.Error("DB Error ")
+		c.Validation.Keep()
+		c.FlashParams()
+	}
 	return c.Redirect("/home")
 }
 
@@ -75,7 +95,6 @@ func(c Home) AddNumber() revel.Result{
 	contact_id := c.Params.Get("Contact_ID")
 	var phone model.Phone
 	c.Params.Bind(&phone,"Phone")
-	//fmt.Println(contact_id,phone.PhoneNumber)
 	c.Validation.Required(phone.PhoneNumber)
 	if c.Validation.HasErrors(){
 
@@ -83,12 +102,25 @@ func(c Home) AddNumber() revel.Result{
 		c.FlashParams()
 		return c.Redirect("/home")
 	}else{
-		id := phone.AddNumDB(contact_id)
+		contactuuid,err := gocql.ParseUUID(contact_id)
+		id ,err := phone.AddNumDB(contactuuid)
+		if(err !=nil) {
+			c.Flash.Error("DB Error ")
+			c.Validation.Keep()
+			c.FlashParams()
+		}
 		number := model.Phone{
-			Id:int(id),
+			Id: id,
 			PhoneNumber:phone.PhoneNumber,
 		}
 		return c.RenderJSON(number)
 	}
 
+}
+
+func FindUserID(name string) (gocql.UUID,error){
+
+	var id gocql.UUID
+	err := app.CassandraSession.Query("SELECT user_id FROM user_by_name WHERE user_name=? " ,name).Scan(&id)
+	return id,err
 }

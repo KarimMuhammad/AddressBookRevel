@@ -2,13 +2,13 @@ package model
 
 import "fmt"
 import (
-	"github.com/AddressBookRevel/app"
-	"strconv"
+	"github.com/AddressBookRevelWithCassandra/app"
+	"github.com/gocql/gocql"
 )
 
 type ContactInfo struct {
 
-	Id int
+	Id gocql.UUID
 	FirstName string
 	LastName string
 	JobTitle string
@@ -18,56 +18,48 @@ type ContactInfo struct {
 
 }
 
-func (contact ContactInfo) AddContactDB(user_id int64)(int64){
+func (contact ContactInfo) AddContactDB(user_id gocql.UUID) (gocql.UUID, error){
 
-	fmt.Println(user_id)
-	contactquery, err :=app.DB.Exec("INSERT INTO Contact_List( Contact_ID, First_Name, Last_Name, Job_Title, Company, Email, User_Id_FK) VALUES (?,?,?,?,?,?,?)",nil,contact.FirstName,contact.LastName,contact.JobTitle,contact.Company,contact.Email,user_id)
-	checkErr(err)
-	lastinsertid,err := contactquery.LastInsertId()
-	checkErr(err)
-	return  lastinsertid
+	uuid,err := gocql.RandomUUID()
+	err =app.CassandraSession.Query("INSERT INTO contact_by_user( contact_id, first_name, last_name, job , company, email, user_id ) VALUES (?,?,?,?,?,?,?)",uuid,contact.FirstName,contact.LastName,contact.JobTitle,contact.Company,contact.Email,user_id).Exec()
+	return uuid,err
 }
 
-func (contact ContactInfo) AddNumDB(contactid int64){
+func (contact ContactInfo) AddNumDB(contactid gocql.UUID) error{
 
-	_, err := app.DB.Exec("INSERT INTO Phone_Numbers( No_ID,Phone_Number,Contact_Id_FK) VALUES (?,?,?)", nil,contact.Phones[0].PhoneNumber, contactid)
-	checkErr(err)
+	uuid,err := gocql.RandomUUID()
+	err =app.CassandraSession.Query("INSERT INTO phones( number_id,number,contact_id) VALUES (?,?,?)", uuid,contact.Phones[0].PhoneNumber, contactid).Exec()
+	return err
 }
 
-func  (contact ContactInfo) DeleteContactDB (contactid string){
+func  (contact ContactInfo) DeleteContactDB (userid gocql.UUID , contactid gocql.UUID) error{
 
-	ID, _ := strconv.ParseInt(contactid, 10, 64)
-	_,err := app.DB.Exec("DELETE FROM Phone_Numbers WHERE Contact_Id_FK=?",ID)
-	checkErr(err)
-	_,err = app.DB.Exec("DELETE FROM Contact_List WHERE Contact_ID=?",ID)
-	checkErr(err)
+	deleteContactStat := "DELETE FROM phones WHERE contact_id= ?"
+	deletePhonesStat := "DELETE FROM contact_by_user WHERE user_id =? And contact_id=?"
+	batch := gocql.NewBatch(gocql.LoggedBatch)
+	batch.Query(deleteContactStat, contactid)
+	batch.Query(deletePhonesStat, userid, contactid)
+	err := app.CassandraSession.ExecuteBatch(batch)
+	return err
 }
 
 
-func (contact ContactInfo) HomeDB( user_id int64 ) [] ContactInfo{
+func (contact ContactInfo) GetContacts( user_id gocql.UUID ) ([] ContactInfo){
 
-	contactrows, err := app.DB.Query("SELECT Contact_ID, First_Name, Last_Name, Job_Title, Company, Email, No_ID, Phone_Number FROM Contact_List join`Phone_Numbers` ON Contact_List.Contact_ID = Phone_Numbers.Contact_Id_FK WHERE User_Id_FK=? ",user_id)
-	checkErr(err)
 	var contacts []ContactInfo
-	var currentcontact ContactInfo
 	var no Phone
 
-	for contactrows.Next(){
+	iter := app.CassandraSession.Query("SELECT contact_id, first_name, last_name, job , company, email FROM contact_by_user  WHERE user_id=? ",user_id).Iter()
 
-		contactrows.Scan(&contact.Id, &contact.FirstName, &contact.LastName, &contact.JobTitle, &contact.Company,&contact.Email ,&no.Id,&no.PhoneNumber)
-		if contact.Id!=currentcontact.Id && currentcontact.Id != 0{
-
-			contacts = append(contacts, currentcontact)
-			currentcontact = contact
-
-		}else if currentcontact.Id == 0{
-
-			currentcontact=contact
+	for iter.Scan(&contact.Id, &contact.FirstName, &contact.LastName, &contact.JobTitle, &contact.Company,&contact.Email ){
+		iter2:=app.CassandraSession.Query("SELECT Number_id, number FROM phones WHERE contact_id = ? ALLOW FILTERING" , &contact.Id).Iter()
+		for iter2.Scan(&no.Id, &no.PhoneNumber) {
+			fmt.Println(no)
+			contact.Phones = append(contact.Phones, no)
 		}
-		currentcontact.Phones = append(currentcontact.Phones, no)
+		contacts = append(contacts, contact)
 	}
-	contacts = append(contacts, currentcontact)
-	fmt.Println(contacts)
+
 	return contacts
 }
 

@@ -174,7 +174,7 @@
                 console.log(contact)
                 if (!contact) return;
                 $("#view-results").append("<tr id='contact-row-" + contact.Id + "'><td>" + contact.FirstName + "</td><td>" + contact.LastName + "</td><td>" + contact.JobTitle + "</td><td>" + contact.Company + "</td><td>" + contact.Email + "</td><td><select><option></option></select> <form style='border: none'> <input id='num' name='no' type='text'/> <input name='add-no' value='Add no' type='submit' onclick='addnumber(+ contact.Id +)'> </form></td><td><button class='delete-btn' onclick='deletecontact(" + contact.Id + ")'>Delete</button></td></tr>");
-                location.reload();
+                //location.reload();
             }
 
         });

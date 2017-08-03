@@ -2,10 +2,7 @@ package controllers
 
 import (
 	"github.com/revel/revel"
-	"strconv"
-	"github.com/AddressBookRevel/app/model"
-	"github.com/AddressBookRevel/app"
-
+	"github.com/AddressBookRevelWithCassandra/app/model"
 	"fmt"
 )
 //in this controller file it will search for Sign folder in views folder
@@ -39,8 +36,6 @@ func (c Sign) Signin() revel.Result {
 
 	} else {
 		c.Session["user_name"] = login.Username
-		c.Session["user_id"] = strconv.Itoa(FindUserID(login.Username))
-		fmt.Println(c.Session["user_id"])
 		return c.Redirect("/home")
 	}
 }
@@ -48,12 +43,14 @@ func (c Sign) Signin() revel.Result {
 
 func (c Sign) Register() revel.Result {
 
+
 	var signup model.User
 	c.Params.Bind(&signup,"user")
 
 	c.Validation.Required(signup.Username)
 	c.Validation.Required(signup.Email)
 	c.Validation.Required(signup.Password)
+	fmt.Println(signup)
 
 	if c.Validation.HasErrors(){
 
@@ -61,25 +58,21 @@ func (c Sign) Register() revel.Result {
 		c.FlashParams()
 
 	}else if(signup.Exists())  {
-
+		fmt.Println("exist" , signup.Exists() )
 		c.Flash.Error("user name already exist")
 		c.Validation.Keep()
 		c.FlashParams()
 
 	}else {
-		signup.SignupDB()
+		err := signup.SignupDB()
+		if(err !=nil){
+			c.Flash.Error("DB Error")
+			c.Validation.Keep()
+			c.FlashParams()
+		}
 		c.Flash.Success("Successful Sign up")
 	}
 	return c.RenderTemplate("Sign/Signup.html")
 }
 
-func FindUserID(name string) int{
 
-	rows, _:= app.DB.Query("SELECT User_ID FROM Users WHERE User_Name=? " ,name)
-	defer rows.Close()
-	var id int
-	if rows.Next() {
-		rows.Scan(&id)
-	}
-	return id
-}

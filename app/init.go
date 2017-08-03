@@ -2,9 +2,9 @@ package app
 
 import (
 	"github.com/revel/revel"
-	"database/sql"
 	_"github.com/go-sql-driver/mysql"
 
+	"github.com/gocql/gocql"
 )
 
 var (
@@ -14,10 +14,13 @@ var (
 	// BuildTime revel app build-time (ldflags)
 	BuildTime string
 )
-var DB *sql.DB
+//var DB *sql.DB
+var CassandraSession *gocql.Session
 
 func InitDB(){
-	DB,_ =sql.Open("mysql","root:12345678@/Address_book")
+	cluster := gocql.NewCluster("127.0.0.1")
+	cluster.Keyspace = "address_book"
+	CassandraSession,_ = cluster.CreateSession()
 }
 
 func init() {
