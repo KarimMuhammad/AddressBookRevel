@@ -52,7 +52,6 @@ func (c Home) AddContact() revel.Result{
 		ID, err := model.FindUserID(user_name)
 		Contactinfo.Phones = append(Contactinfo.Phones , phones)
 		lastinsertid ,err := Contactinfo.AddContactDB(ID)
-		phones.AddNumDB(lastinsertid)
 		if(err !=nil) {
 			c.Flash.Error("DB Error")
 			c.Validation.Keep()

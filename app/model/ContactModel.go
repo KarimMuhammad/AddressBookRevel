@@ -1,9 +1,10 @@
 package model
 
-import "fmt"
+import "github.com/gocql/gocql"
+
+
 import (
 	"github.com/AddressBookRevelWithCassandra/app"
-	"github.com/gocql/gocql"
 )
 
 type ContactInfo struct {
@@ -21,7 +22,13 @@ type ContactInfo struct {
 func (contact ContactInfo) AddContactDB(user_id gocql.UUID) (gocql.UUID, error){
 
 	uuid,err := gocql.RandomUUID()
-	err =app.CassandraSession.Query("INSERT INTO contact_by_user( contact_id, first_name, last_name, job , company, email, user_id ) VALUES (?,?,?,?,?,?,?)",uuid,contact.FirstName,contact.LastName,contact.JobTitle,contact.Company,contact.Email,user_id).Exec()
+	numberUuid , err := gocql.RandomUUID()
+	contactInsertion := "INSERT INTO contact_by_user( contact_id, first_name, last_name, job , company, email, user_id ) VALUES (?,?,?,?,?,?,?)"
+	phoneInsertion := "INSERT INTO phones( number_id,number,contact_id) VALUES (?,?,?)"
+	batch := gocql.NewBatch(gocql.LoggedBatch)
+	batch.Query(contactInsertion ,uuid,contact.FirstName,contact.LastName,contact.JobTitle,contact.Company,contact.Email,user_id )
+	batch.Query(phoneInsertion , numberUuid , contact.Phones[0].PhoneNumber , uuid )
+	err =app.CassandraSession.ExecuteBatch(batch)
 	return uuid,err
 }
 
@@ -40,19 +47,24 @@ func  (contact ContactInfo) DeleteContactDB (userid gocql.UUID , contactid gocql
 func (contact ContactInfo) GetContacts( user_id gocql.UUID ) ([] ContactInfo){
 
 	var contacts []ContactInfo
+	var newcontact ContactInfo
 	var no Phone
 
-	iter := app.CassandraSession.Query("SELECT contact_id, first_name, last_name, job , company, email FROM contact_by_user  WHERE user_id=? ",user_id).Iter()
-
-	for iter.Scan(&contact.Id, &contact.FirstName, &contact.LastName, &contact.JobTitle, &contact.Company,&contact.Email ){
-		iter2:=app.CassandraSession.Query("SELECT Number_id, number FROM phones WHERE contact_id = ? ALLOW FILTERING" , &contact.Id).Iter()
-		for iter2.Scan(&no.NoId, &no.PhoneNumber) {
-			fmt.Println(no)
-			contact.Phones = append(contact.Phones, no)
+	rows := app.CassandraSession.Query("SELECT contact_id, first_name, last_name, job , company, email FROM contact_by_user  WHERE user_id=? ",user_id)
+	scanner :=rows.Iter().Scanner()
+		for scanner.Next(){
+	 scanner.Scan(&newcontact.Id, &newcontact.FirstName, &newcontact.LastName, &newcontact.JobTitle, &newcontact.Company,&newcontact.Email )
+	 res :=app.CassandraSession.Query("SELECT Number_id, number FROM phones WHERE contact_id = ? " , newcontact.Id)
+	 numberScanner :=res.Iter().Scanner()
+		for numberScanner.Next(){
+			numberScanner.Scan(&no.NoId, &no.PhoneNumber)
+			newcontact.Phones = append(newcontact.Phones, no)
 		}
-		contacts = append(contacts, contact)
-	}
+		contacts = append(contacts, newcontact)
+			newcontact.Phones = []Phone{}
 
+	}
+	rows.Iter().Close()
 	return contacts
 }
 
